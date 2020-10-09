@@ -1,0 +1,4 @@
+# setup egg
+**/*.egg-info
+**/__pycache__/*
+**/
