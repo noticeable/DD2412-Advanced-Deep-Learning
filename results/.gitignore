@@ -1,6 +1,7 @@
 # Ignore everything in this directory
 /*
 /*/
+
 # Except this file and test directory
 !.gitignore
-!/test_images/
+!/test_results/
