@@ -1,9 +1,13 @@
-import numpy as np
 import os
-
 from PIL import Image
+import argparse
 
 from torch.utils.data import Dataset
+from torch.autograd import Variable
+from torch.utils.data import DataLoader
+from torchvision import transforms
+
+from data.transform_voc import ToLabel, Relabel
 
 EXTENSIONS = ['.jpg', '.png']
 
@@ -48,3 +52,33 @@ class VOC12(Dataset):
 
     def __len__(self):
         return len(self.filenames)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--datadir', type=str, default='../datasets/TODO', help='Path to dataset directory')
+    args = parser.parse_args()
+
+    input_transform = transforms.Compose([
+        transforms.CenterCrop(256),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[.485, .456, .406], std=[.229, .224, .225]),
+    ])
+    target_transform = transforms.Compose([
+        transforms.CenterCrop(256),
+        ToLabel(),
+        Relabel(255, 21),
+    ])
+
+    datadir = args.datadir
+
+    loader = DataLoader(VOC12(datadir, input_transform, target_transform),
+                        num_workers=0, batch_size=12, shuffle=True)
+
+    for epoch in range(1, 4):
+        epoch_loss = []
+
+        for step, (images, labels) in enumerate(loader):
+            inputs = Variable(images)
+            targets = Variable(labels)
+            # outputs = model(inputs)
