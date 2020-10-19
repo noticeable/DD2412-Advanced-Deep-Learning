@@ -150,7 +150,7 @@ if __name__ == '__main__':
     # Test on Resnet50
     model = models.resnet50(pretrained=True)
 
-    # Model.to('cpu').eval() extracts the configuration from the model
+    # Instantiate the gradCAM class
     gradcam = GradCAM(  model=model, \
                         target_layer = model.layer4
                         )
