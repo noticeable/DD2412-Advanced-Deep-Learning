@@ -38,6 +38,8 @@ class GradCAM:
         target_layer.register_forward_hook(fn_forward)
         target_layer.register_backward_hook(fn_backwards)
 
+        self.model.eval()
+
 
     def retrieve_heatmap(   self,   \
                             gradients, \
@@ -73,6 +75,21 @@ class GradCAM:
 
 
     """
+    # TODO: Comment me!
+    """
+    def get_one_hot_encoding(self, predictions, target_index=None):
+        if target_index == None:
+            target_index = torch.argmax(predictions)
+
+        one_hot_encoding = torch.FloatTensor(1, predictions.size()[-1]).zero_()
+        one_hot_encoding[0][target_index] = 1
+
+        return one_hot_encoding
+
+
+
+
+    """
         Defines the forward method for the model which retrieves the 
         heat map for gradcam
 
@@ -89,20 +106,14 @@ class GradCAM:
         # Apply a forward pass to the model
         predictions = self.model(input)
 
-        if target_index is None:
-            # If we are investigating the most likely output
-            # retrieve the output associated with that class
-            score = predictions[:, predictions.max(1)[-1]].squeeze()
-        else:
-            # If we are investigating a specific class, retrieve the output
-            # associated with that class
-            score = predictions[:, target_index].squeeze()
+        # Obtain the target class for back-propagation
+        target_one_hot_encoding = self.get_one_hot_encoding(predictions, target_index = target_index)
 
-        # Reset the gradients in the model to 0 prior to training
+        # Reset the gradients in the model to 0 prior to conducting backward pass
         self.model.zero_grad()
 
         # Conduct the backward pass
-        score.backward()
+        predictions.backward(gradient = target_one_hot_encoding)
 
         # Retireve the heatmap
         gcam_map = self.retrieve_heatmap( self.gradients['value'], self.activations['value'], image_height, image_width)
@@ -119,7 +130,7 @@ if __name__ == '__main__':
     model = models.resnet50(pretrained=True)
 
     # Model.to('cpu').eval() extracts the configuration from the model
-    gradcam = GradCAM(  model=model.to('cpu').eval(), \
+    gradcam = GradCAM(  model=model, \
                         target_layer = model.layer4
                         )
 
