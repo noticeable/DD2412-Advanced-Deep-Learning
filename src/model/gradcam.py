@@ -1,26 +1,19 @@
-import cv2
 import torch
+import cv2
 import numpy as np
-import PIL
+from torchvision import models
 
-from torchvision import models, transforms
-from torch.nn import functional as F
-from torch.nn import Module
-
-from utils.viz import viz_gradcam
+from utils.viz import save_image, get_image, get_normalized_image, normalize, get_heatmap
 
 class GradCAM:
 
-    def __init__(self, model: Module, target_layer: Module):
+    def __init__(self, model, target_layer=None):
         # Model being investigated
         self.model = model
 
         # Dictionary to store gradient and activation values
         self.gradients = {}
         self.activations = {}
-
-        # Activation function to use in gradcam
-        self.cam_activation = F.relu
 
         # Defining the callable function that will be used to store the gradients
         # as computed in the backward pass and stores it in the gradient dictionary
@@ -38,21 +31,43 @@ class GradCAM:
         target_layer.register_forward_hook(fn_forward)
         target_layer.register_backward_hook(fn_backwards)
 
+        # Set the model into evaluation mode
         self.model.eval()
 
 
+    """ ReLU
+    # inputs:
+    #   input:  Tensor: tensor to apply ReLU activations to
+    #  outputs:
+    #   output: Tensor: tensor post ReLU activation
+    """
+    def ReLU(self, input):
+        output = np.maximum(np.sum(input,axis=0), 0)
+        return output
+
+    """
+    # Retrieves the heatmap mask as per the gradCAM paper
+    # inputs:
+    #   gradients:      Tensor: gradients flowing backwards
+    #   activations:    Tensor: outputs of the forward pass
+    #   image_height:   scalar: number of pixels in the rows
+    #   image_width:    scalar: number of pixels in the columns
+    # outputs:
+    #   gcam_map:       np.matrix: gradCAM mask for the heatmap
+    """
     def retrieve_heatmap(   self,   \
                             gradients, \
                             activations, \
                             image_height, \
                             image_width, \
                             ):
-
-        # Retrieve the dimensions of the gradients
-        batch_size, number_of_channels, height, width = gradients.size()
-
         # Apply global average pooling by applying two views 1st. averaging 2nd.pooling
-        alpha = gradients.view(batch_size, number_of_channels, -1).mean(2).view(batch_size,number_of_channels, 1, 1) 
+        # NOTE: After squeezing and taking the mean (i.e. global average pooling), alpha is now a one dimensional vector
+        alpha = np.mean(gradients.squeeze().data.numpy(), axis=(1,2))
+
+        # Activations is a three dimensional vector 
+        activations = activations.squeeze().data.numpy()
+
         """
         # Paper page 5: Perform a weighted combination of forward activation maps, followed by a Relu to obtain
         # L_{Grad-CAM}^{c} = ReLU( \sum_{k} a_{k}^{c} A^{k} )
@@ -61,15 +76,16 @@ class GradCAM:
         # interested in the features that have a positive influence on the class of interest
         # i.e. pixel whose intensity should be increased in order to increase y^{c}.
         """
-        gcam_map = (alpha * activations).sum(1, keepdim=True)
-        gcam_map = self.cam_activation(gcam_map)
+        gcam_map = self.ReLU(activations * alpha[:, np.newaxis, np.newaxis])
 
         """
         # Paper page 5: Notice that this results in a coarse heatmap of the same size as the convolutional
         # feature maps.
         """
-        gcam_map = F.interpolate(gcam_map, size=(image_height, image_width), mode='bilinear', align_corners=False)
-        gcam_map = (gcam_map - gcam_map.min()).div(gcam_map.max()-gcam_map.min()).data
+        gcam_map -= np.min(gcam_map)
+        gcam_map /= np.max(gcam_map)
+        gcam_map = cv2.resize(gcam_map, (image_height, image_width))
+
 
         return gcam_map
 
@@ -82,18 +98,17 @@ class GradCAM:
     # outputs:
     #   one_hot_encoding: tensor: one hot encoding of target class
     """
-    def get_one_hot_encoding(self, predictions, target_index=None):
+    def get_target(self, predictions, target_index=None):
         if target_index == None:
-            target_index = torch.argmax(predictions)
+            target_index = np.argmax(predictions.data.numpy())
+        
+        target = predictions[0][target_index]
 
-        one_hot_encoding = torch.FloatTensor(1, predictions.size()[-1]).zero_()
-        one_hot_encoding[0][target_index] = 1
-
-        return one_hot_encoding
+        return target
 
 
     """
-        Defines the forward method for the model which retrieves the 
+    Defines the forward method for the model which retrieves the 
         heat map for gradcam
 
         inputs:
@@ -106,20 +121,23 @@ class GradCAM:
         # Retrieve the dimensions of the input
         _, _, image_height, image_width = input.size() 
 
+        # Reset the gradients in the model to 0 prior to conducting backward pass
+        self.model.zero_grad()
+
         # Apply a forward pass to the model
         predictions = self.model(input)
 
         # Obtain the target class for back-propagation
-        target_one_hot_encoding = self.get_one_hot_encoding(predictions, target_index = target_index)
-
-        # Reset the gradients in the model to 0 prior to conducting backward pass
-        self.model.zero_grad()
+        target = self.get_target(predictions, target_index = target_index)
 
         # Conduct the backward pass
-        predictions.backward(gradient = target_one_hot_encoding)
-
-        # Retireve the heatmap
-        gcam_map = self.retrieve_heatmap( self.gradients['value'], self.activations['value'], image_height, image_width)
+        target.backward()
+        
+        # Make activations and alpha the same dimensions by adding new axis to the one dimensional alpha
+        gcam_map = self.retrieve_heatmap(   self.gradients['value'], \
+                                            self.activations['value'], \
+                                            image_height, \
+                                            image_width)
 
         return gcam_map
 
@@ -137,20 +155,23 @@ if __name__ == '__main__':
                         target_layer = model.layer4
                         )
 
-    # Obtain the initial image
-    image = PIL.Image.open('../../datasets/test_images/cat_dog.png')
+    # Obtain pre-normalized image
+    image = get_image('../../datasets/test_images/cat_dog.png')
 
-    # Convert the image into torch format
-    torch_image = transforms.Compose([
-                                transforms.Resize((224, 224)),
-                                transforms.ToTensor()
-                                ])(image).to('cpu')
-
-    # Normalize the image
-    normalized_image = transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])(torch_image)[None]
+    # Obtain normalized image
+    normalized_image = get_normalized_image('../../datasets/test_images/cat_dog.png')
 
     # Obtain the image mask by applying gradcam
     mask = gradcam(normalized_image)
 
     # Obtain the result of merging the mask with the torch image
-    viz_gradcam(torch_image, mask, output_file="../../results/test_results/cat_dog_gradcam.jpeg")
+    heatmap = get_heatmap(mask)
+
+    # Merge the heatmap with 
+    cam = heatmap + np.float32(image)
+
+    # Normalize the merged results
+    cam = normalize(cam)
+
+    # Save the results!
+    save_image(cam, '../../results/test_results/cat_dog_gradcam.png')
