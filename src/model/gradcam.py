@@ -75,7 +75,12 @@ class GradCAM:
 
 
     """
-    # TODO: Comment me!
+    # Creates one hot encoding for the target class
+    # inputs:
+    #   predictions: tensor: output of the model's forward pass
+    #   target_index: scalar: desired class for investigation
+    # outputs:
+    #   one_hot_encoding: tensor: one hot encoding of target class
     """
     def get_one_hot_encoding(self, predictions, target_index=None):
         if target_index == None:
@@ -85,8 +90,6 @@ class GradCAM:
         one_hot_encoding[0][target_index] = 1
 
         return one_hot_encoding
-
-
 
 
     """
