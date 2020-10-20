@@ -11,6 +11,19 @@ from data.transform_voc import ToLabel, Relabel
 
 EXTENSIONS = ['.jpg', '.png']
 
+input_transform = transforms.Compose([
+        transforms.CenterCrop(256),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[.485, .456, .406], std=[.229, .224, .225]),
+    ])
+
+target_transform = transforms.Compose([
+    transforms.CenterCrop(256),
+    ToLabel(),
+    Relabel(255, 21),
+])
+
+
 def load_image(file):
     return Image.open(file)
 
@@ -56,21 +69,10 @@ class VOC12(Dataset):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--datadir', type=str, default='../datasets/TODO', help='Path to dataset directory')
+    parser.add_argument('--data-dir', type=str, default='../datasets/TODO', help='Path to dataset directory')
     args = parser.parse_args()
 
-    input_transform = transforms.Compose([
-        transforms.CenterCrop(256),
-        transforms.ToTensor(),
-        transforms.Normalize(mean=[.485, .456, .406], std=[.229, .224, .225]),
-    ])
-    target_transform = transforms.Compose([
-        transforms.CenterCrop(256),
-        ToLabel(),
-        Relabel(255, 21),
-    ])
-
-    datadir = args.datadir
+    datadir = args.data_dir
 
     loader = DataLoader(VOC12(datadir, input_transform, target_transform),
                         num_workers=0, batch_size=12, shuffle=True)
