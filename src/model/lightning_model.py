@@ -1,4 +1,8 @@
-''' Lightning Model for finetuning models pretrained on ImageNet '''
+''' Lightning Model for finetuning models pretrained on ImageNet.
+For default params, run using python model/lightning_model.py --dataset_dir '../datasets/VOC2012
+Add any other args through command line as necessary
+'''
+
 import argparse
 from pathlib import Path
 import torch
