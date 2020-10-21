@@ -148,10 +148,11 @@ class GradCAM:
 
 
 if __name__ == '__main__':
+    model_name = 'inception_v3'
     # Retrieve the model
     # please see prepare_models.py for a list of valid models
     # Dated: 21.10.2020; valid_models = ['resnet50','vgg16','googlenet','inception_v3', 'alexnet']
-    model, layer_name = get_model('inception_v3')
+    model, layer_name = get_model(model_name)
 
     # Instantiate the gradCAM class
     gradcam = GradCAM(  model=model, \
