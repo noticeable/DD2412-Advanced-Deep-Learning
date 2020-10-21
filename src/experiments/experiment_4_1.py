@@ -19,6 +19,7 @@ def binarize(image, percentage=0.15):
     # Define the threshold as a percentage of the maximum intensity
     threshold_value = percentage * maximum_intensity
 
+    # Display some information if DEBUG is enabled.
     print(f'Maximum intensity: {maximum_intensity} \nThreshold value: {threshold_value}') if DEBUG else None
 
     # Binarize the image at the threshold value
@@ -38,20 +39,25 @@ def binarize(image, percentage=0.15):
 """
 def draw_bounding_box(image):
 
+    # Finds the largest contiguous block in the image
     contours, hierarchy = cv2.findContours( image=image, \
                                             mode=cv2.RETR_TREE,\
                                             method=cv2.CHAIN_APPROX_SIMPLE \
                                             )
 
+    # If there are multiple contiguous blocks, select the largest
     if len(contours) > 0:
         contour = max(contours, key=cv2.contourArea)
     else:
         contour = contours[0]
 
+    # Determine the coordinates of the minimum bounding box around the contour
     x, y, w, h = cv2.boundingRect(contour)
 
+    # Print some information if debug is enabled.
     print(f'Number of contours found: {len(contours)}\nCoordinates of bounding box: Upper-left:({x},{y}), Bottom-right:({x+w},{y+h})') if DEBUG else None
 
+    # Draw the bounding box!
     bounded_image = cv2.rectangle(  img=image, \
                                     pt1=(x,y),          # Top left coordinate\
                                     pt2=(x+w,y+h),      # Bottom right coordinate\
