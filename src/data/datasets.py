@@ -119,8 +119,6 @@ class VOC2007(Dataset):
             if self.input_transform is not None:
                 image = self.input_transform(image)
             label = self.labels[i]
-            print('image', self.images[i])
-            print('label', label)
             return image, label
 
 
