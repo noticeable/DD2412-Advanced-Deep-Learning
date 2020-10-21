@@ -4,6 +4,7 @@ import numpy as np
 from torchvision import models
 
 from utils.viz import save_image, get_image, get_normalized_image, normalize, get_heatmap
+from utils.prepare_models import get_model
 
 class GradCAM:
 
@@ -147,12 +148,14 @@ class GradCAM:
 
 
 if __name__ == '__main__':
-    # Test on Resnet50
-    model = models.resnet50(pretrained=True)
+    # Retrieve the model
+    # please see prepare_models.py for a list of valid models
+    # Dated: 21.10.2020; valid_models = ['resnet50','vgg16','googlenet','inception_v3', 'alexnet']
+    model, layer_name = get_model('inception_v3')
 
     # Instantiate the gradCAM class
     gradcam = GradCAM(  model=model, \
-                        target_layer = model.layer4
+                        target_layer = layer_name
                         )
 
     # Obtain pre-normalized image
@@ -166,6 +169,9 @@ if __name__ == '__main__':
 
     # Obtain the result of merging the mask with the torch image
     heatmap = get_heatmap(mask)
+
+    # Save the heatmap!
+    save_image(heatmap, '../../results/test_results/cat_dog_heatmap.png')
 
     # Merge the heatmap with 
     cam = heatmap + np.float32(image)

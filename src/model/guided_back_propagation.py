@@ -4,6 +4,7 @@ from torchvision import models
 
 from model.gradcam import GradCAM
 from utils.viz import save_image, get_normalized_image, normalize
+from utils.prepare_models import get_model
 
 class GuidedBackPropagation:
 
@@ -76,12 +77,14 @@ class GuidedBackPropagation:
 
 
 if __name__ == '__main__':
-    # Test on Resnet50
-    model = models.resnet50(pretrained=True)
+    # Retrieve the model
+    # please see prepare_models.py for a list of valid models
+    # Dated: 21.10.2020; valid_models = ['resnet50','vgg16','googlenet','inception_v3', 'alexnet']
+    model, layer_name = get_model('resnet50')
 
     # Instantiate gradcam
     gradcam = GradCAM(  model=model, \
-                        target_layer = model.layer4
+                        target_layer = layer_name
                         )
 
     """ Guided Back Propagation """
