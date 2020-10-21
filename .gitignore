@@ -1,3 +1,4 @@
 # setup egg
 **/*.egg-info
 **/__pycache__/*
+src/config.toml
