@@ -65,7 +65,7 @@ def draw_bounding_box(image):
 if __name__ == "__main__":
 
     # Define path to the image
-    image_path = '../../../results/test_results/cat_dog_heatmap.png'
+    image_path = '../../results/test_results/cat_dog_heatmap.png'
 
     #Read in the image
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
@@ -73,16 +73,16 @@ if __name__ == "__main__":
     # Convert to grayscale
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    cv2.imwrite('../../../results/experiment_4_1/grayscale.png', image)
+    cv2.imwrite('../../results/experiment_4_1/grayscale.png', image)
 
     # Binarize the image
     binarized_image = binarize(image, percentage=0.50)
 
     # Save binarized image
-    cv2.imwrite('../../../results/experiment_4_1/binarized.png', binarized_image)
+    cv2.imwrite('../../results/experiment_4_1/binarized.png', binarized_image)
 
     # draw bounding box
     bounded_binarized_image = draw_bounding_box(binarized_image)
 
     # Save results
-    cv2.imwrite('../../../results/experiment_4_1/bounded_binarized.png', bounded_binarized_image)
+    cv2.imwrite('../../results/experiment_4_1/bounded_binarized.png', bounded_binarized_image)
