@@ -53,6 +53,7 @@ class VOCModel(LightningModule):
 
     def configure_optimizers(self):
         optimiser = torch.optim.Adam(self.parameters(), lr=self.params['lr'])
+        self.log('lr', self.params['lr'])
         return optimiser
 
     def get_loss_accuracy(self, pred, target):

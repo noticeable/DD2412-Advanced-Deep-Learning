@@ -111,12 +111,12 @@ class VOC2007(Dataset):
         self.labels = labels_boxes['labels'].tolist()
         self.boxes = labels_boxes['boxes'].tolist()
 
-        assert len(self.images) == len(self.objects)
+        assert len(self.images) == len(self.labels)
 
     def __getitem__(self, i):
         # Read image
         image = load_image(self.images[i]).convert('RGB')
-        im_width, im_height = im.size
+        im_width, im_height = image.size
         if self.input_transform is not None:
             image = self.input_transform(image)
         label = self.labels[i]
