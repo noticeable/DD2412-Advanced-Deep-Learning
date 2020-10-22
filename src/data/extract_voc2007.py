@@ -4,7 +4,7 @@ from pathlib import Path
 from collections import defaultdict
 import pandas as pd
 
-from data.utils import create_data_lists
+from data.utils_old import create_data_lists
 
 
 def extract_largest_item_label(voc07_dir):
@@ -32,7 +32,8 @@ def extract_largest_item_label(voc07_dir):
             largest_ann_dic[im_name] = sorted(annotations_dic[im_name], key=lambda x: x[0][2] * x[0][3], reverse=True)[0] or ()
 
         df = pd.DataFrame(data={'file_name': DATA_IMAGES,
-                                'labels': [largest_ann_dic[file][1] for file in DATA_IMAGES]})
+                                'labels': [largest_ann_dic[file][1] for file in DATA_IMAGES],
+                                'boxes': [largest_ann_dic[file][0] for file in DATA_IMAGES]})
 
         df.to_csv(DATA_DIR / f'{type}_largest_item_labels.csv', index=False)
 
@@ -44,8 +45,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     data_dir = args.voc_dir
 
-    create_data_lists(voc07_path=f'{data_dir}/VOC2007',
-                      voc12_path=f'{data_dir}/VOC2012',
-                      output_folder=f'{data_dir}/VOC2007/loader')
+    # create_data_lists(voc07_path=f'{data_dir}/VOC2007',
+    #                   voc12_path=f'{data_dir}/VOC2012',
+    #                   output_folder=f'{data_dir}/VOC2007/loader')
 
     extract_largest_item_label(f'{data_dir}/VOC2007')
