@@ -175,8 +175,8 @@ if __name__ == '__main__':
 
         ### Get transformed image, label and transformed bounding box (x,y,w,h) ###
         print('Loading VOC2007 dataset...')
-        train_dataset = VOC2007(datadir, split='train', input_transform=input_transform)
-        val_dataset = VOC2007(datadir, split='val', input_transform=input_transform)
+        train_dataset = VOC2007(datadir, split='train', input_transform=input_transform, bb_transform=bb_transform)
+        val_dataset = VOC2007(datadir, split='val', input_transform=input_transform, bb_transform=bb_transform)
 
         train_loader = torch.utils.data.DataLoader(train_dataset,
                                                    batch_size=args.batch_size,
