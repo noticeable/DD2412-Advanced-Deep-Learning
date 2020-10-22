@@ -5,4 +5,5 @@
 # Except this file and test directory
 !.gitignore
 !/test_results/
-!/experiment_4_1
+!/experiment_4_1/
+!/linear_probing/
