@@ -13,9 +13,9 @@ from skimage import io
 # outputs:
 #   image: tensor: tensor representing the image under investigation
 """
-def get_image(path='../../datasets/test_images/cat_dog.png'):
+def get_image(path='../../datasets/test_images/cat_dog.png', image_size=256):
     image = io.imread(path)
-    image = np.float32(cv2.resize(image, (224, 224))) / 255
+    image = np.float32(cv2.resize(image, (image_size, image_size))) / 255
 
     return image
 
@@ -28,8 +28,9 @@ def get_image(path='../../datasets/test_images/cat_dog.png'):
 #   input_image: tensor: tensor representing the image under investigation
 """
 def get_normalized_image(path='../../datasets/test_images/cat_dog.png'):
-    image = io.imread(path)
-    image = np.float32(cv2.resize(image, (224, 224))) / 255
+    # Retrieve the image
+    image = get_image(  path=path, \
+                        image_size=256)
 
     # Convert the image into torch format
     input_image = image.copy()
