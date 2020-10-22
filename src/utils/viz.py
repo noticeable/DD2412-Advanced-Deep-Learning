@@ -50,7 +50,6 @@ def get_normalized_image(path='../../datasets/test_images/cat_dog.png'):
 
 """
 def save_image(image, path='../../results/test_results/cat_dog_guided_backpropagation.png'):
-    image = cv2.convertScaleAbs(image)
     io.imsave(path, image)
 
 
