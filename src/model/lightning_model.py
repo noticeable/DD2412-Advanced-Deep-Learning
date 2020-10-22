@@ -46,6 +46,7 @@ class VOCModel(LightningModule):
         self.network = load_pretrained_model(self.params['model_name'], self.params['num_classes'])
         self.criterion = nn.CrossEntropyLoss()
         self.softmax = nn.Softmax(dim=1)
+        self.save_hyperparameters()
 
     def forward(self, x):
         output = self.network(x)
@@ -133,7 +134,7 @@ def get_train_params(params):
     experiment_type = 'segmentation' if params['segmentation'] else 'detection'
     model_dir = Path(f"../results/models/{params['model_name']}")
 
-    model_dir = model_dir / experiment_type
+    model_dir = model_dir / experiment_type / trainer_params['experiment_name']
     model_dir.mkdir(parents=True, exist_ok=True)
     checkpoint_callback = ModelCheckpoint(
         # filepath=f'{model_save_path}_best_model.pth',
@@ -160,6 +161,7 @@ if __name__ == '__main__':
     # TODO @09panesara implement segmentation as well - pass in detection=False to dataset, modify num_classes
     parser = argparse.ArgumentParser()
     parser.add_argument('--model_name', type=str, default='resnet50', help='model to finetune', choices=['resnet18', 'resent50', 'vgg16', 'alexnet'])
+    parser.add_argument('--experiment_name', type=str, help='name of experiment', default='test_experiment')
     parser.add_argument('--segmentation', action='store_true', default=False, help='whether to train segmentation. If False, trains detection.')
     parser.add_argument('--num_classes', type=int, default=21, help='number of output classes. 20 (+1 for background) for VOCDetection.')
     parser.add_argument('--dataset_dir', type=str, help='path to directory of data', default='../datasets/VOC2012', choices=['../datasets/VOC/VOC2012', '../datasets/VOC/VOC2007/loader'])
@@ -171,18 +173,27 @@ if __name__ == '__main__':
     parser.add_argument('--debug', action='store_true', default=False,
                         help='if true, runs on subset of data.')
     parser.add_argument('--lr', default=0.0001, type=float)
+    parser.add_argument('--load_checkpoint_path', default=None, type=str)
 
 
     hparams = vars(parser.parse_args())
     trainer_params = get_train_params(hparams)
-    # init lightning module
-    model = VOCModel(hparams)
-    # trainer
-    trainer = Trainer.from_argparse_args(trainer_params)
-    trainer.fit(model)
-    trainer.test()
-    print('Saving logs')
-    trainer.save_checkpoint(f"../results/models/{hparams['model_name']}final_model.ckpt")
+
+
+    if hparams['load_checkpoint_path'] is None:
+        # trainer
+        model = VOCModel(hparams)         # init lightning module
+        trainer = Trainer.from_argparse_args(trainer_params)
+        trainer.fit(model)
+        trainer.test()
+        print('Saving logs')
+        trainer.save_checkpoint(f"../results/models/{hparams['model_name']}final_model.ckpt")
+    else:
+        # test model
+        model_test = VOCModel.load_from_checkpoint(hparams['load_checkpoint_path'])
+        trainer = Trainer.from_argparse_args(trainer_params)
+        trainer.test(model_test)
+
 
 
 
