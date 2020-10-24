@@ -10,11 +10,6 @@ from model.gradcam import GradCAM
 
 DEBUG = False
 
-CATEGORY_LIST = ['background', 'aeroplane', 'bicycle', 'bird', 'boat', 'bottle', 'bus', 'car', 'cat', 'chair',
-            'cow', 'diningtable', 'dog', 'horse', 'motorbike', 'person', 'pottedplant',
-            'sheep', 'sofa', 'train', 'tvmonitor']
-
-
 """
 #   Computes the gradCAM heatmap for a given image
 #   :param  gradCAM     gradCAM object to call for computing results
@@ -35,27 +30,6 @@ def compute_heatmap(gradcam, image_path):
     return heatmap
 
 
-"""
-#   Returns the class identifiers for the selected image
-#   :param  annotation_path path to the annotation file
-"""
-
-"""
-NOTE: Not all test images have an associated annotations file! Resorting to using the provided .pickle file
-"""
-def get_class_identifier(annotation_path):
-    # Read in and parse the annotation documentation
-    annotation_document = minidom.parse(annotation_path)
-    
-    # Extract the 'name' node which contains the class
-    classes = [name_node.childNodes[0].nodeValue for name_node in annotation_document.getElementsByTagName('name')]
-
-    # Conver the class name into the class value
-    class_ids = [CATEGORY_LIST.index(class_name) for class_name in classes]
-    
-    return class_ids
-
-
 if __name__ == "__main__":
 
     # please see prepare_models.py for a list of valid models
@@ -70,20 +44,11 @@ if __name__ == "__main__":
                         target_layer = layer_name
                         )
 
-    # Dictionary which stores two items per image identifier 
-    # {image_identifier}_labels : [class1, class2...,classn]
-    # {image_identifier}_cues: array([[matrix],[matrix],[matrix]]) = array(3D-Matrix)
-    results = {}
-
+    # Mapping of input_list key to file name and vice versa
     input_key_map = {}
     key_input_map = {}
 
-    # Test image directory
-    # VOC_root_directory              = './test_data/VOCdevkit/VOC2012/'
-    # VOC_test_image_directory        = VOC_root_directory + 'JPEGImages/'
-    # VOC_test_annotations_directory  = VOC_root_directory + 'Annotations/'
-    # VOC_test_identifiers_path       = './test_id.txt'
-    # VOC_test_identifiers            = None
+    # Directory to the ground truth localization cues to be modified
     localization_cues_file          = './sample_localization_cues/localization_cues.pickle'
 
     # Directory to list of training samples
@@ -101,6 +66,9 @@ if __name__ == "__main__":
 
 
     # Open the existing localization_cues with ground truth provided
+    # Dictionary which stores two items per image identifier 
+    # {image_identifier}_labels : [class1, class2...,classn]
+    # {image_identifier}_cues: array([[matrix],[matrix],[matrix]]) = array(3D-Matrix)
     file = open(localization_cues_file,'rb')
     data = pickle.load(file)
 
