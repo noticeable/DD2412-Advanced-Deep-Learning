@@ -31,7 +31,8 @@ def get_model(  model_name = "resnet50", \
 
     # Retrieve the models
     if model_name == 'resnet50':
-        model = models.resnet50(pretrained=pretrained)
+        # model = models.resnet50(pretrained=pretrained)
+        model = models.segmentation.fcn_resnet50(pretrained=pretrained)
     elif model_name == 'vgg16':
         model = models.vgg16(pretrained=pretrained)
     elif model_name in ['googlenet', 'inception_v3']:
