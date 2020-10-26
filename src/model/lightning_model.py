@@ -160,7 +160,7 @@ if __name__ == '__main__':
     # get args and instantiate Trainer
     # TODO @09panesara implement segmentation as well - pass in detection=False to dataset, modify num_classes
     parser = argparse.ArgumentParser()
-    parser.add_argument('--model_name', type=str, default='resnet50', help='model to finetune', choices=['resnet18', 'resent50', 'vgg16', 'alexnet'])
+    parser.add_argument('--model_name', type=str, default='resnet50', help='model to finetune', choices=['resnet18', 'resnet50', 'vgg16', 'alexnet'])
     parser.add_argument('--experiment_name', type=str, help='name of experiment', default='test_experiment')
     parser.add_argument('--segmentation', action='store_true', default=False, help='whether to train segmentation. If False, trains detection.')
     parser.add_argument('--num_classes', type=int, default=21, help='number of output classes. 20 (+1 for background) for VOCDetection.')
