@@ -1,5 +1,6 @@
 import torch
 from torchvision import models
+from model.lightning_model import VOCModel
 
 # List of supported models
 # Dated: 21.10.2020
@@ -43,11 +44,16 @@ def get_model(  model_name = "resnet50", \
 
     # Load weights into the model
     if weight_path is not None:
-        model.load_state_dict(torch.load(weight_path))
+        model.load_state_dict(torch.load(weight_path, map_location=torch.device('cpu')))
 
     """ Retreiving Layer for investigation """
     layer_name = get_layer_name(model_name, model)
 
+    return model, layer_name
+
+def load_fine_trained(model_name, model_path):
+    model =  VOCModel.load_from_checkpoint(model_path)
+    layer_name = get_layer_name(model_name, model.network)
     return model, layer_name
 
 def get_layer_name(model_name, model):
@@ -74,3 +80,8 @@ def get_layer_name(model_name, model):
     
 
     return layer_name
+
+if __name__ == '__main__':
+    model_weights = '../models/alexnet_finetrained.ckpt'
+    model, layer_name = load_fine_trained('alexnet', model_weights)
+    print(layer_name)
