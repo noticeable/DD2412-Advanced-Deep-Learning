@@ -63,11 +63,11 @@ def get_images_from_lightning(model1, model2, csv_fpath='experiments/experiment_
 
 if __name__ == '__main__':
     model_weights = '../weights/vgg16_finetrained.ckpt'
-    model_name = 'vgg16'
+    model_name = 'vgg16_old'
     vgg_model, _ = load_fine_trained(model_name, model_weights)
 
     model_weights = '../weights/alexnet_finetrained.ckpt'
-    model_name = 'alexnet'
+    model_name = 'alexnet_old'
     alexnet_model, _ = load_fine_trained(model_name, model_weights)
 
     experiment_data_fpath = 'experiments/experiment_5_2/experiment_data.csv'

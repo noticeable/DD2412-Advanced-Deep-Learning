@@ -32,12 +32,13 @@ def main():
     images = data['images'].tolist()
     labels = data['labels'].apply(lambda x: x[1:-1].split(',')).tolist()
     categories = data['categories'].apply(lambda x: x[1:-1].split(',')).tolist()
-
+    main_category_index = data['main_category_index'].tolist()
 
     for i, im_path in enumerate(images):
         label_set = labels[i]
         category_set = categories[i]
-        n = random.randint(0,1)
+        # n = random.randint(0,1)
+        n = int(main_category_index[i])
         label = int(label_set[n])
 
         category = category_set[n]
