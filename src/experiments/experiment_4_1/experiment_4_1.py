@@ -112,7 +112,7 @@ def compute_bounding_box(image):
 def test_case():
 
     # Define path to the image
-    image_path = '../../../results/test_results/cat_dog_heatmap.png'
+    image_path = '../../../results/test_results/test/cat_dog_heatmap.png'
 
     #Read in the image
     image = cv2.imread(image_path, cv2.IMREAD_COLOR)
@@ -120,13 +120,13 @@ def test_case():
     # Convert to grayscale
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
-    cv2.imwrite('../../../results/experiment_4_1/grayscale.png', image)
+    cv2.imwrite('../../../results/experiment_4_1/test/grayscale.png', image)
 
     # Binarize the image
     binarized_image = binarize(image, percentage=0.50)
 
     # Save binarized image
-    cv2.imwrite('../../../results/experiment_4_1/binarized.png', binarized_image)
+    cv2.imwrite('../../../results/experiment_4_1/test/binarized.png', binarized_image)
 
     # Get the positions of the bounding box
     x, y, width, height = compute_bounding_box(binarized_image)
@@ -141,6 +141,94 @@ def test_case():
 
     # Save results
     cv2.imwrite('../../../results/experiment_4_1/bounded_binarized.png', bounded_binarized_image)
+
+
+def test_009911():
+
+    image_identifier = '009911'
+
+    # Define path to the image
+    binarized_image_path = '../../../results/experiment_4_1/009911/binarized.png'
+
+    # Original image
+    original_image_path = '../../../results/experiment_4_1/009911/original.jpg'
+
+    #Read in the image
+    original_image = cv2.imread(original_image_path, cv2.IMREAD_COLOR)
+
+    #Read in the image
+    binarized_image = cv2.imread(binarized_image_path, cv2.COLOR_BGR2GRAY)
+
+    # Retrieve the original image size for comparison
+    original_height, original_width, _              = original_image.shape
+
+    binarized_image = cv2.resize(binarized_image,(original_width, original_height))
+
+    # Get the positions of the bounding box
+    x, y, width, height = compute_bounding_box(binarized_image)
+
+    # draw bounding box
+    bounded_binarized_image = draw_bounding_box(x=x, \
+                                                y=y, \
+                                                width=width, \
+                                                height=height, \
+                                                image=binarized_image
+                                                )
+
+    # Save results
+    cv2.imwrite('../../../results/experiment_4_1/009911/bounded_binarized.png', bounded_binarized_image)
+
+    # x       = int(x * original_width / binarized_image_width)
+    # y       = int(y * original_height/ binarized_image_height)
+    # width   = int(width * original_width/ binarized_image_width)
+    # height  = int(height * original_height/ binarized_image_height)
+
+    # draw bounding box
+    bounded_original_image = draw_bounding_box( x=x, \
+                                                y=y, \
+                                                width=width, \
+                                                height=height, \
+                                                image=original_image
+                                                )
+
+    cv2.imwrite('../../../results/experiment_4_1/009911/bounded_original.png', bounded_original_image)
+
+
+    ground_truth_bounding_boxes_path = './ground_truth_bounding_boxes_original.pickle'
+
+    # Read the ground truth file to get list of images to process
+    with open(ground_truth_bounding_boxes_path,'rb') as opened_file:
+        ground_truth_bounding_boxes = pickle.load(opened_file)
+
+    # Extract information from dictionary
+    ground_truth_x1, \
+    ground_truth_y1, \
+    ground_truth_x2, \
+    ground_truth_y2, \
+    original_width, \
+    original_height = ground_truth_bounding_boxes[image_identifier + '.xml']
+
+    # Cast to int
+    ground_truth_x1 = int(ground_truth_x1)
+    ground_truth_x2 = int(ground_truth_x2)
+    ground_truth_y1 = int(ground_truth_y1)
+    ground_truth_y2 = int(ground_truth_y2)
+    original_width = int(original_width)
+    original_height = int(original_height)
+    ground_truth_width = int(ground_truth_x2 - ground_truth_x1)
+    ground_truth_height = int(ground_truth_y2 - ground_truth_y1)
+
+    dual_bounded_image = draw_bounding_box( x=ground_truth_x1, \
+                                            y=ground_truth_y1, \
+                                            width=ground_truth_width, \
+                                            height=ground_truth_height, \
+                                            image=bounded_original_image
+                                            )
+
+    cv2.imwrite('../../../results/experiment_4_1/009911/dual_bounded.png', dual_bounded_image)
+
+
+
 
 """
 # Computes and stores the bounding box coordinates computed using GradCAM
@@ -183,13 +271,19 @@ def process_VOC2007(generate_bounding_box_images=False):
         heatmap = cv2.cvtColor(original_heatmap, cv2.COLOR_BGR2GRAY)
 
         # Binarize the image
-        binarized_heatmap = binarize(heatmap, percentage=0.50)
+        binarized_heatmap = binarize(heatmap, percentage=0.15)
+
+        # Retrieve the original image size for comparison
+        original_height, original_width, _              = original_image.shape
+
+        # Rescale binarized image to original size
+        binarized_heatmap = cv2.resize(binarized_heatmap,(original_width, original_height))
 
         # Get the positions of the bounding box
         x, y, width, height = compute_bounding_box(binarized_heatmap)
 
         # Store the results in the dictioary
-        gradCAM_bounding_boxes[image_identifier] = np.array([x, y, x + width, y + height])
+        gradCAM_bounding_boxes[image_identifier+'.xml'] = np.array([x, y, x + width, y + height])
 
         # Draw bounding box images
         if generate_bounding_box_images:
@@ -241,4 +335,8 @@ def process_VOC2007(generate_bounding_box_images=False):
 
 if __name__ == "__main__":
     # test_case()
+    
     process_VOC2007(generate_bounding_box_images=True)
+
+    # test_image_009911.png
+    # test_009911()

@@ -23,7 +23,7 @@ def calculate_intersection_over_union_score(bounding_box_1, bounding_box_2):
     """
 
     bounding_box_1_x1, bounding_box_1_y1, bounding_box_1_x2, bounding_box_1_y2 = bounding_box_1
-    bounding_box_2_x1, bounding_box_2_y1, bounding_box_2_x2, bounding_box_2_y2 = bounding_box_2
+    bounding_box_2_x1, bounding_box_2_y1, bounding_box_2_x2, bounding_box_2_y2, _, _ = bounding_box_2
 
     # Confirm that coordinates are reasonable!
     assert bounding_box_1_x1 < bounding_box_1_x2
@@ -79,7 +79,7 @@ def test_case():
 """
 def score_gradCAM():
     # Define paths to files
-    ground_truth_resized_bounding_boxes_path = './ground_truth_bounding_boxes.pickle'
+    ground_truth_resized_bounding_boxes_path = './ground_truth_bounding_boxes_original.pickle'
     gradCAM_resized_bounding_boxes_path = './gradCAM_bounding_boxes.pickle'
     VOC2007_images_directory = '../../../datasets/VOC/VOC2007/JPEGImages/'
 

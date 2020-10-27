@@ -9,6 +9,10 @@ from utils.prepare_models import get_model
 from model.gradcam import GradCAM
 
 DEBUG = False
+NUMBER_OF_CLASSES = 20
+LOCALIZATION_MAP_SIZE = 41
+MODEL_WEIGHTS = '../../../weights/resnet50_finetrained.ckpt'
+
 
 """
 #   Computes the gradCAM heatmap for a given image
@@ -16,7 +20,7 @@ DEBUG = False
 #   :param  image_path  directory location of image
 #   :output heatmap     heatmap generated from GradCAM processing
 """
-def compute_heatmap(gradcam, image_path):
+def compute_heatmap(gradcam, image_path, target_class):
 
     # Obtain normalized image
     normalized_image = get_normalized_image(image_path)
@@ -25,7 +29,7 @@ def compute_heatmap(gradcam, image_path):
     mask = gradcam(normalized_image)
 
     # Obtain the result of merging the mask with the torch image
-    heatmap = get_heatmap(mask)
+    heatmap = get_heatmap(mask, target_index=target_class)
 
     return heatmap
 
@@ -37,7 +41,9 @@ if __name__ == "__main__":
     model_name = 'resnet50'
     
     # Retrieve the model
-    model, layer_name = get_model(model_name)
+    print(f'Loading weights for model: { model_name}...')
+    model, layer_name = load_fine_trained(model_name, model_weights)
+    print(f'Weights loaded!')
 
     # Instantiate the gradCAM class
     gradcam = GradCAM(  model=model, \
@@ -74,9 +80,6 @@ if __name__ == "__main__":
 
     for line in tqdm(data):
 
-        # Update the tqdm status bar
-        sleep(0.25)
-
         # If heatmaps are provided, regnerate new heat maps using gradCAM
         if '_cues' in line:
 
@@ -86,11 +89,26 @@ if __name__ == "__main__":
             # Specify the directory to retrieve the test identifier's image
             image_path = VOC_input_image_directory + image_identifier
 
+            # Storage location for localization maps
+            # ..20 classes
+            # .. 41x41 grid to interface with original paper
+            localization = np.zeros((NUMBER_OF_CLASSES,LOCALIZATION_MAP_SIZE,LOCALIZATION_MAP_SIZE))
+
+            for class_identifier in range(NUMBER_OF_CLASSES):
             # Specity the directory to retrieve the test identifier's annotations
-            heatmap = compute_heatmap(gradcam, image_path)
+                heatmap = compute_heatmap(gradcam, image_path, target_class=class_identifier)
+
+                # Resize the heatmap to fit the interface
+                resized_heatmap = cv2.resize(heatmap,(LOCALIZATION_MAP_SIZE,LOCALIZATION_MAP_SIZE))
+
+                # Activate the heatmap if it is greater than a threshold of 0.20 of maximum intensity
+                resized_heatmap = resized_heatmap > 0.20 * np.max(resized_heatmap)
+
+                # Store the localization results for the class
+                localization[i,:,:] = resized_heatmap
             
             # Store the new heatmap into the pickle dataset
-            data[line] = heatmap
+            data[line] = localization
 
     # Save the updated pickle file!
     pickle.dump('localization_cues_BY.pickle', data)
