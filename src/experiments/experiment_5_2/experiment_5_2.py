@@ -61,9 +61,8 @@ def main():
         # Save the image
         img_dir = f'../results/experiment_5_2/{img_name}/guided_back_prop'
         Path(img_dir).mkdir(parents=True, exist_ok=True)
-        model_for_user = 'model_A' if n == 0 else 'model_B'
 
-        save_image(guided_backpropagation_image, f'{img_dir}/{model_name}_{model_for_user}.png')
+        save_image(guided_backpropagation_image, f'{img_dir}/{model_name}.png')
 
         """ Guided GradCAM"""
         # Reset the guided_backpropagation_mask of the input, so that the input_image tensor can be used again
@@ -81,9 +80,8 @@ def main():
         # save image
         img_dir = f'../results/experiment_5_2/{img_name}/guided_gradcam'
         Path(img_dir).mkdir(parents=True, exist_ok=True)
-        model_for_user = 'model_A' if n == 1 else 'model_B'
 
-        save_image(guided_gradCAM, f'{img_dir}/{model_name}_{model_for_user}.png')
+        save_image(guided_gradCAM, f'{img_dir}/{model_name}.png')
 
 
 
