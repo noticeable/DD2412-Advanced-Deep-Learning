@@ -54,7 +54,7 @@ def main():
         input_image = get_normalized_image(im_path)
 
         # Obtain the image mask by applying gradcam
-        guided_backpropagation_mask = guided_backpropagation(input_image)
+        guided_backpropagation_mask = guided_backpropagation(input_image, label)
 
         # Normalize the guided back propagation mask
         guided_backpropagation_image = normalize(guided_backpropagation_mask)
