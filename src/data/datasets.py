@@ -87,7 +87,7 @@ class VOC2007(Dataset):
     Taken and modified from https://github.com/sgrvinod/a-PyTorch-Tutorial-to-Object-Detection
     """
 
-    def __init__(self, data_folder, split, return_bb=False, input_transform=None, box_transform=None):
+    def __init__(self, data_folder, split, return_bb=False, return_im_path=False, input_transform=None, box_transform=None):
         """
         :param data_folder: folder where data files are stored
         :param split: split, one of 'TRAIN' or 'TEST'
@@ -97,6 +97,7 @@ class VOC2007(Dataset):
         self.return_bb = return_bb
         self.input_transform = input_transform
         self.box_transform = box_transform
+        self.return_im_path = return_im_path # returns image path instead of image
 
         assert self.split in {'TRAIN', 'VAL', 'TEST'}
 
@@ -115,11 +116,15 @@ class VOC2007(Dataset):
 
     def __getitem__(self, i):
         # Read image
-        image = load_image(self.images[i]).convert('RGB')
+        im_path = self.images[i]
+        image = load_image(im_path).convert('RGB')
         im_width, im_height = image.size
         if self.input_transform is not None:
             image = self.input_transform(image)
         label = self.labels[i]
+
+        if self.return_im_path:
+            return im_path, image, label
 
         if self.return_bb: # returns bounding box and label
             box = self.boxes[i]
@@ -162,7 +167,6 @@ if __name__ == '__main__':
         ### Get transformed image, label ###
         train_dataset = VOC2007(datadir, split='train', input_transform=input_transform)
         val_dataset = VOC2007(datadir, split='val', input_transform=input_transform)
-
 
         train_loader = torch.utils.data.DataLoader(train_dataset,
                                                    batch_size=args.batch_size,
