@@ -9,7 +9,7 @@ from utils.prepare_models import get_model, load_fine_trained
 from model.gradcam import GradCAM
 
 # Path to VOC bounding boxes as parsed from the annotations files
-ground_truth_resized_bounding_boxes_path = './ground_truth_bounding_boxes_original.pickle'
+ground_truth_bounding_boxes_path = './ground_truth_bounding_boxes_original.pickle'
 
 # Path to VOC original images
 VOC2007_images_directory = '../../../datasets/VOC/VOC2007/JPEGImages/'
@@ -35,7 +35,7 @@ if __name__ == "__main__":
                         )
 
     # Read the ground truth file to get list of images to process
-    with open(ground_truth_resized_bounding_boxes_path,'rb') as opened_file:
+    with open(ground_truth_bounding_boxes_path,'rb') as opened_file:
         ground_truth_bounding_boxes = pickle.load(opened_file)
 
     # Get the list of images to iterate through
