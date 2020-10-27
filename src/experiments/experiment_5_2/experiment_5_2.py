@@ -16,7 +16,8 @@ from utils.viz import save_image, get_normalized_image, normalize
 import numpy as np
 import pandas as pd
 import random
-
+import os
+from pathlib import Path
 
 def main():
     # Retrieve the model
@@ -43,7 +44,6 @@ def main():
 
         img_name = f'im_{i}_{category}'
         n = random.randint(0, 1) # if 0, guided back prop is model A and g-grad cam is model B, else guided grad cam is model A and guided back prop is model B
-
         # get guided grad cam map and guided backprop
         """ Guided Back Propagation """
         # Instantiate guided backpropagation to retrieve the mask
@@ -53,14 +53,17 @@ def main():
         input_image = get_normalized_image(im_path)
 
         # Obtain the image mask by applying gradcam
-        guided_backpropagation_mask = guided_backpropagation(input_image)
+        guided_backpropagation_mask = guided_backpropagation(input_image, label)
 
         # Normalize the guided back propagation mask
         guided_backpropagation_image = normalize(guided_backpropagation_mask)
 
         # Save the image
+        img_dir = f'../results/experiment_5_2/{img_name}/guided_back_prop'
+        Path(img_dir).mkdir(parents=True, exist_ok=True)
         model_for_user = 'model_A' if n == 0 else 'model_B'
-        save_image(guided_backpropagation_image, f'../results/experiment_5_2/{model_name}/{img_name}_{model_for_user}_guided_backpropagation.png')
+
+        save_image(guided_backpropagation_image, f'{img_dir}/{model_name}_{model_for_user}.png')
 
         """ Guided GradCAM"""
         # Reset the guided_backpropagation_mask of the input, so that the input_image tensor can be used again
@@ -76,8 +79,11 @@ def main():
         guided_gradCAM = normalize(guided_gradCAM)
 
         # save image
+        img_dir = f'../results/experiment_5_2/{img_name}/guided_gradcam'
+        Path(img_dir).mkdir(parents=True, exist_ok=True)
         model_for_user = 'model_A' if n == 1 else 'model_B'
-        save_image(guided_gradCAM, f'../results/experiment_5_2/{model_name}/{img_name}_{model_for_user}_guided_gradcam.png')
+
+        save_image(guided_gradCAM, f'{img_dir}/{model_name}_{model_for_user}.png')
 
 
 
